@@ -39,6 +39,7 @@ class CorrectedTomlMigrator:
         self.config = self._load_config(config_file or DEFAULT_CONFIG_FILE)
         self.ordering_rules = self.config.get('section_ordering', {})
         self.array_tables = set(self.ordering_rules.get('array_tables', []))
+        self.ignore_patterns = self._parse_ignore_patterns(self.config.get('ignore_patterns', []))
 
     def _load_config(self, config_file: str) -> Dict[str, Any]:
         """Load configuration from JSON file."""
@@ -53,6 +54,57 @@ class CorrectedTomlMigrator:
         except Exception as e:
             print(f"Warning: Error loading config file {config_file}: {e}")
             return {}
+
+    def _parse_ignore_patterns(self, patterns: List[str]) -> Dict[str, str]:
+        """
+        Parse ignore patterns from config file format to internal format.
+
+        Converts from:
+            ["server.hostname:localhost", "super_admin.username:admin"]
+        To:
+            {"server.hostname": "localhost", "super_admin.username": "admin"}
+
+        Supports wildcards like "keystore.*.alias:wso2carbon"
+        """
+        parsed = {}
+        for pattern in patterns:
+            if ':' in pattern:
+                key, value = pattern.split(':', 1)
+                parsed[key] = value
+            else:
+                print(f"Warning: Invalid ignore pattern '{pattern}' - expected 'key:value' format")
+
+        # If no patterns in config, use defaults
+        if not parsed:
+            return DEFAULT_IGNORE_PATTERNS.copy()
+
+        return parsed
+
+    def _matches_ignore_pattern(self, full_key: str, value: Any) -> bool:
+        """
+        Check if a key-value pair matches any ignore pattern.
+
+        Supports wildcards in patterns:
+        - "keystore.*.alias:wso2carbon" matches "keystore.tls.alias:wso2carbon"
+        - "database.*.type:h2" matches "database.shared_db.type:h2"
+        """
+        value_str = str(value)
+
+        for pattern_key, pattern_value in self.ignore_patterns.items():
+            # Check if value matches
+            if value_str != pattern_value:
+                continue
+
+            # Check if key matches (with wildcard support)
+            if '*' in pattern_key:
+                # Convert pattern to regex
+                pattern_regex = pattern_key.replace('.', r'\.').replace('*', r'[^.]+')
+                if re.match(f'^{pattern_regex}$', full_key):
+                    return True
+            elif full_key == pattern_key:
+                return True
+
+        return False
 
     def parse_toml_file(self, file_path: Path) -> Dict[str, Any]:
         """Parse TOML file."""
@@ -155,9 +207,6 @@ class CorrectedTomlMigrator:
         customizations = {}
         target_flat = self.flatten_config(target_config)
 
-        # Known defaults to ignore
-        ignore_defaults = DEFAULT_IGNORE_PATTERNS
-
         for section_name, section_data in source_sections.items():
             section_customizations = {'regular_props': {}, 'quoted_props': [], 'is_array_table': section_data.get('is_array_table', False)}
 
@@ -165,8 +214,8 @@ class CorrectedTomlMigrator:
             for key, value in section_data['regular_props'].items():
                 full_key = f"{section_name}.{key}"
 
-                # Skip known defaults
-                if full_key in ignore_defaults and str(value) == str(ignore_defaults[full_key]):
+                # Skip values matching ignore patterns (including wildcards)
+                if self._matches_ignore_pattern(full_key, value):
                     continue
 
                 # Check if different from target

@@ -110,11 +110,18 @@ name = "Production"
 - Keystore settings (`keystore.*`)
 - Gateway environments (`apim.gateway.environment`)
 
-### Default Values Ignored
-- `server.hostname = "localhost"`
-- `super_admin.username = "admin"`
-- `super_admin.password = "admin"`
-- Default H2 database configurations
+### Default Values Ignored During Migration
+
+The following **key-value pairs** are ignored (not migrated) when found in the source:
+- `server.hostname = "localhost"` (custom hostnames ARE migrated)
+- `super_admin.username = "admin"` (custom usernames ARE migrated)
+- `super_admin.password = "admin"` (custom passwords ARE migrated)
+- `database.*.type = "h2"` (PostgreSQL/MySQL configs ARE migrated)
+- `keystore.*.alias = "wso2carbon"` (custom aliases ARE migrated)
+
+**Note:** Only exact matches are ignored. For example, if your source has `super_admin.username = "production_admin"`, it WILL be migrated since the value doesn't match "admin".
+
+**To migrate all values including defaults:** Edit [custom_migration_rules.json](custom_migration_rules.json) and remove patterns from `ignore_patterns` or set it to `[]`.
 
 ## Example
 
@@ -282,7 +289,7 @@ Define hierarchical ordering to ensure child sections appear after their parents
 - `array_tables`: Sections that should use `[[...]]` notation (can appear multiple times)
 
 **Ignore Patterns:**
-Values matching these patterns are considered defaults and won't be migrated:
+Patterns that match specific key-value pairs to skip during migration. These prevent default/insecure values from being migrated:
 ```json
 "ignore_patterns": [
   "server.hostname:localhost",
@@ -292,6 +299,15 @@ Values matching these patterns are considered defaults and won't be migrated:
   "database.*.type:h2"
 ]
 ```
+
+Each pattern has the format `"key:value"` and only matches when **both** the key AND value match:
+- `"super_admin.username:admin"` → Ignores the property ONLY if username is exactly "admin"
+- `"super_admin.username:myuser"` → Would be migrated (value doesn't match the pattern)
+- Supports wildcards: `"keystore.*.alias:wso2carbon"` matches any keystore subsection
+
+**Why this matters:** This prevents migrating insecure defaults (like admin/admin credentials) or development-only settings (like localhost or H2 database), while still allowing custom values to be migrated.
+
+**To migrate everything (including defaults):** Simply remove patterns from the `ignore_patterns` array or set it to an empty array `[]`. This is useful for development environments or when you explicitly want to preserve all source values.
 
 **Force Preserve Sections:**
 These sections are always migrated regardless of other rules:
@@ -391,12 +407,14 @@ Modify the `preserve_sections` set to add additional sections that should always
 - Transport and security settings
 - Custom properties with quoted names (e.g., `properties."moesifKey"`)
 
-❌ **Never Migrated (Defaults):**
-- `server.hostname = "localhost"`
-- `super_admin.username = "admin"`
-- `super_admin.password = "admin"`
-- Default H2 database types
-- Default keystore aliases
+❌ **Not Migrated (Default Values Only):**
+- `server.hostname = "localhost"` (but custom hostnames ARE migrated)
+- `super_admin.username = "admin"` (but custom usernames ARE migrated)
+- `super_admin.password = "admin"` (but custom passwords ARE migrated)
+- `database.*.type = "h2"` (but PostgreSQL/MySQL ARE migrated)
+- `keystore.*.alias = "wso2carbon"` (but custom aliases ARE migrated)
+
+**Important:** These are key-value pair matches. Only the exact default values listed are ignored. Custom values for the same keys ARE migrated.
 
 ### File Locations
 
