@@ -1,0 +1,106 @@
+# WSO2 Migration Tool - Git Ignore File
+
+# Generated migration output files
+*.migrated.toml
+*_migrated.toml
+*_fixed.toml
+
+# Backup files created by migration tool
+*.backup_*.toml
+deployment_*.backup_*.toml
+
+# Test and temporary files
+test_*.toml
+*_test.toml
+temp_*.toml
+debug_*.toml
+
+# Migration reports and logs
+*.migration_report.md
+*_migration_dry_run.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Archive directory (development versions)
+archive/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Custom migration rules (if containing sensitive data)
+# Uncomment if your custom rules contain secrets
+# custom_migration_rules.json
+
+# Deployment files with sensitive information
+# Uncomment these if your deployment files contain secrets/passwords
+# deployment_*.toml
+# !deployment_*_template.toml
+
+# Documentation build files
+docs/_build/
+site/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+toml_redactor.py

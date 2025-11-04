@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: toml-security-check
+        name: TOML Security Check
+        entry: python3 pre-commit-toml-check.py
+        language: system
+        files: \.toml$
+        pass_filenames: true
+        stages: [pre-commit]

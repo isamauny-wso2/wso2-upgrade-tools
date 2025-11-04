@@ -1,0 +1,102 @@
+{
+  "auto_detect_strategy": true,
+  "preserve_user_values": true,
+  "conflict_resolution": "source_wins",
+  "section_ordering": {
+    "description": "Defines hierarchical ordering rules for TOML sections",
+    "rules": [
+      {
+        "parent": "apim.ai",
+        "children_must_follow": true,
+        "child_sections": [
+          "apim.ai.embedding_provider",
+          "apim.ai.embedding_provider.properties",
+          "apim.ai.vector_db_provider",
+          "apim.ai.vector_db_provider.properties",
+          "apim.ai.guardrail_provider",
+          "apim.ai.guardrail_provider.properties"
+        ]
+      },
+      {
+        "parent": "apim.throttling",
+        "children_must_follow": true,
+        "child_sections": [
+          "apim.throttling.blacklist_condition",
+          "apim.throttling.jms",
+          "apim.throttling.event_sync",
+          "apim.throttling.event_management",
+          "apim.throttling.url_group"
+        ]
+      },
+      {
+        "parent": "keystore.tls",
+        "children_must_follow": false
+      },
+      {
+        "parent": "keystore.primary",
+        "children_must_follow": false
+      }
+    ],
+    "array_tables": [
+      "apim.gateway.environment",
+      "apim.throttling.url_group",
+      "apim.ai.guardrail_provider",
+      "event_handler",
+      "event_listener"
+    ]
+  },
+  "ignore_patterns": [
+    "server.hostname:localhost",
+    "super_admin.username:admin",
+    "super_admin.password:admin",
+    "keystore.*.alias:wso2carbon",
+    "database.*.type:h2"
+  ],
+  "force_preserve": [
+    "database.*",
+    "keystore.*",
+    "apim.analytics.*",
+    "apim.ai.*",
+    "server.hostname",
+    "server.internal_hostname",
+    "server.node_ip",
+    "apim.gateway.environment.*",
+    "apim.cors.*",
+    "oauth.*",
+    "transport.*",
+    "apim.throttling.*"
+  ],
+  "version_specific_handling": {
+    "v4.5_to_v4.6": {
+      "deprecated_keys": [
+        "apim.cache.gateway_token",
+        "apim.cache.resource"
+      ],
+      "new_keys": [
+        "oauth.token_cleanup",
+        "apim.sdk"
+      ],
+      "renamed_keys": {}
+    }
+  },
+  "environment_profiles": {
+    "production": {
+      "extra_preserve": [
+        "transport.receiver.*",
+        "apim.notification.*",
+        "apim.workflow.*"
+      ],
+      "extra_ignore": [
+        "apim.open_telemetry.*",
+        "apim.cache.*"
+      ]
+    },
+    "development": {
+      "extra_preserve": [
+        "apim.open_telemetry.*",
+        "apim.cache.*",
+        "apim.ai.*"
+      ]
+    }
+  }
+}
