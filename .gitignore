@@ -1,5 +1,7 @@
 # WSO2 Migration Tool - Git Ignore File
 
+# input_files
+input_files/
 # Generated migration output files
 *.migrated.toml
 *_migrated.toml
